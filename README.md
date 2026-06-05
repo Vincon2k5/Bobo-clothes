@@ -1,6 +1,8 @@
 # BoBo Fashion - MERN Stack E-Commerce
 
 BoBo Fashion is a modern MERN stack e-commerce platform for a clothing brand, featuring product browsing, cart and checkout flows, guest checkout, and admin tools for managing products and orders.
+sử dụng React/Vite/Tailwind ở frontend, Node.js/Express ở backend và MongoDB làm cơ sở dữ liệu.
+
 
 ## Khởi chạy nhanh
 
