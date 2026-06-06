@@ -34,9 +34,52 @@ connectDB();
 app.use(helmet());
 
 // CORS: Chỉ cho phép frontend BoBo gọi API
+// CORS: cho phép một hoặc nhiều origin (CLIENT_URL hoặc CLIENT_URLS)
+const clientUrl = process.env.CLIENT_URL || '';
+const clientUrlsRaw = (process.env.CLIENT_URLS || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+// Build allow list; entries may be full origins (https://...) or plain host suffixes like 'vercel.app'
+const allowedExactOrigins = new Set();
+const allowedHostSuffixes = new Set();
+
+if (clientUrl) {
+  allowedExactOrigins.add(clientUrl);
+}
+for (const entry of clientUrlsRaw) {
+  if (/^https?:\/\//i.test(entry)) allowedExactOrigins.add(entry);
+  else allowedHostSuffixes.add(entry.replace(/^\./, ''));
+}
+
+// Always allow localhost dev origins
+allowedExactOrigins.add('http://localhost:5173');
+allowedExactOrigins.add('http://localhost:4173');
+
+const allowAllCors = process.env.ALLOW_ALL_CORS === 'true';
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+      // Allow non-browser requests (e.g., server-to-server, curl) with no origin
+      if (!origin) return callback(null, true);
+      if (allowAllCors) return callback(null, true);
+      if (allowedExactOrigins.has(origin)) return callback(null, true);
+
+      // Check host suffixes (e.g., any preview on vercel.app)
+      try {
+        const url = new URL(origin);
+        const host = url.host; // includes hostname and port
+        for (const suffix of allowedHostSuffixes) {
+          if (host === suffix || host.endsWith(`.${suffix}`)) return callback(null, true);
+        }
+      } catch (err) {
+        // ignore parse errors
+      }
+
+      callback(new Error(`CORS policy: origin ${origin} not allowed`));
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   })
@@ -54,6 +97,14 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 app.use('/api', limiter);
+
+// Prevent CDN/proxy from caching API responses that vary by Origin.
+// Some CDNs may cache responses (including CORS headers) and return
+// the wrong `Access-Control-Allow-Origin` for subsequent requests.
+app.use('/api', (req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  next();
+});
 
 // Rate limit nghiêm hơn cho checkout (chống spam đơn hàng)
 const checkoutLimiter = rateLimit({
