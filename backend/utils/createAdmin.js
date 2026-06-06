@@ -9,9 +9,17 @@ const User = require('../models/User');
 const createAdmin = async () => {
   await connectDB();
   try {
+    console.log(`ℹ️  Target MongoDB: ${process.env.MONGO_URI?.replace(/:\/\/.*@/, '://***:***@') || 'undefined'}`);
     const existing = await User.findOne({ email: 'admin@bobo.vn' });
     if (existing) {
-      console.log('✅ Admin đã tồn tại: admin@bobo.vn');
+      existing.fullName = 'BoBo Admin';
+      existing.role = 'admin';
+      existing.isActive = true;
+      existing.password = 'Admin@123';
+      await existing.save();
+
+      console.log('✅ Admin đã tồn tại và đã được reset mật khẩu: admin@bobo.vn');
+      console.log('   Password: Admin@123');
       process.exit(0);
     }
 

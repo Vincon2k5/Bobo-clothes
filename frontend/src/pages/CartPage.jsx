@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
+import placeholder from '../assets/placeholder.svg';
 import { useCart } from '../context/CartContext';
 
 const CartPage = () => {
@@ -38,7 +39,8 @@ const CartPage = () => {
               <li key={item._id} className="flex gap-5 py-6">
                 <Link to={`/products/${item.productSnapshot?.slug}`} className="flex-shrink-0">
                   <img
-                    src={item.productSnapshot?.image}
+                    src={item.productSnapshot?.image || placeholder}
+                    onError={(e) => { e.currentTarget.src = placeholder; }}
                     alt={item.productSnapshot?.name}
                     className="w-24 h-32 object-cover bg-bobo-gray-50"
                   />

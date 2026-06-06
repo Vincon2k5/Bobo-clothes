@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ShoppingBag, Heart, Eye } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import QuickAddModal from './QuickAddModal';
+import placeholder from '../../assets/placeholder.svg';
 
 /**
  * ProductCard - Component thẻ sản phẩm thời trang BoBo
@@ -55,8 +56,8 @@ const ProductCard = ({ product }) => {
     new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
 
   // Lấy ảnh theo hover state và màu đang active
-  const frontImage = images?.[0] || '/placeholder.jpg';
-  const hoverImage = images?.[1] || images?.[0] || '/placeholder.jpg';
+  const frontImage = images?.[0] || placeholder;
+  const hoverImage = images?.[1] || images?.[0] || placeholder;
 
   // Badges
   const isNew = tags?.includes('new-arrival');
@@ -120,6 +121,7 @@ const ProductCard = ({ product }) => {
               src={frontImage}
               alt={name}
               loading="lazy"
+              onError={(e) => { e.currentTarget.src = placeholder; }}
               className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500
                 ${isHovered ? 'opacity-0' : 'opacity-100'}`}
             />
@@ -128,6 +130,7 @@ const ProductCard = ({ product }) => {
               src={hoverImage}
               alt={`${name} - góc khác`}
               loading="lazy"
+              onError={(e) => { e.currentTarget.src = placeholder; }}
               className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500
                 ${isHovered ? 'opacity-100' : 'opacity-0'}`}
             />
