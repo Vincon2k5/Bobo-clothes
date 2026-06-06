@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext';
 import { orderApi } from '../services/api';
 import toast from 'react-hot-toast';
 import placeholder from '../assets/placeholder.svg';
+import { resolveImageUrl } from '../utils/image';
 
 const PAYMENT_METHODS = [
   { id: 'cod', label: 'Thanh toán khi nhận hàng (COD)', icon: '💵' },
@@ -448,7 +449,7 @@ const OrderSummary = ({ items, subtotal, shippingFee, total, formatPrice }) => (
         <li key={item._id} className="flex gap-3">
           <div className="relative flex-shrink-0">
             <img
-              src={item.productSnapshot?.image || placeholder}
+              src={resolveImageUrl(item.productSnapshot?.image) || placeholder}
               onError={(e) => { e.currentTarget.src = placeholder; }}
               alt={item.productSnapshot?.name}
               className="w-14 h-16 object-cover bg-bobo-gray-50"

@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/admin/products', label: 'Sản phẩm', icon: Package },
   { to: '/admin/orders', label: 'Đơn hàng', icon: ShoppingCart },
+  { to: '/admin/homepage', label: 'Trang chủ', icon: Package },
 ];
 
 const AdminLayout = () => {

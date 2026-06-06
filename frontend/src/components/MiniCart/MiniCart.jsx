@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { X, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import placeholder from '../../assets/placeholder.svg';
+import { resolveImageUrl } from '../../utils/image';
 
 /**
  * Mini Cart - Drawer từ phải hiện khi click icon giỏ hàng
@@ -126,7 +127,7 @@ const CartItem = ({ item, onUpdate, onRemove, formatPrice }) => {
       {/* Product Image */}
       <Link to={`/products/${productSnapshot?.slug}`} className="flex-shrink-0">
         <img
-          src={productSnapshot?.image || placeholder}
+          src={resolveImageUrl(productSnapshot?.image) || placeholder}
           onError={(e) => { e.currentTarget.src = placeholder; }}
           alt={productSnapshot?.name}
           className="w-20 h-24 object-cover bg-bobo-gray-50"

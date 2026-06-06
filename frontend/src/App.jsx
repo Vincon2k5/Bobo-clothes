@@ -19,6 +19,7 @@ import ProductsPage from './pages/admin/ProductsPage';
 import ProductFormPage from './pages/admin/ProductFormPage';
 import OrdersPage from './pages/admin/OrdersPage';
 import OrderDetailPage from './pages/admin/OrderDetailPage';
+import HomepageSettingsPage from './pages/admin/HomepageSettingsPage';
 
 // Layout bọc Header + Footer cho các trang shop
 const ShopLayout = ({ children }) => (
@@ -76,6 +77,7 @@ const App = () => {
           <Route path="products/:id/edit" element={<ProductFormPage />} />
           <Route path="orders" element={<OrdersPage />} />
           <Route path="orders/:id" element={<OrderDetailPage />} />
+          <Route path="homepage" element={<HomepageSettingsPage />} />
         </Route>
 
         {/* ==============================

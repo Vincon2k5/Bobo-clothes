@@ -4,6 +4,7 @@ import { ShoppingBag, Heart, Eye } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import QuickAddModal from './QuickAddModal';
 import placeholder from '../../assets/placeholder.svg';
+import { resolveImageUrl } from '../../utils/image';
 
 /**
  * ProductCard - Component thẻ sản phẩm thời trang BoBo
@@ -118,7 +119,7 @@ const ProductCard = ({ product }) => {
           <div className="relative aspect-[3/4] overflow-hidden bg-bobo-gray-50">
             {/* Ảnh chính (front) */}
             <img
-              src={frontImage}
+              src={resolveImageUrl(frontImage)}
               alt={name}
               loading="lazy"
               onError={(e) => { e.currentTarget.src = placeholder; }}
@@ -127,7 +128,7 @@ const ProductCard = ({ product }) => {
             />
             {/* Ảnh hover (back/detail) */}
             <img
-              src={hoverImage}
+              src={resolveImageUrl(hoverImage)}
               alt={`${name} - góc khác`}
               loading="lazy"
               onError={(e) => { e.currentTarget.src = placeholder; }}

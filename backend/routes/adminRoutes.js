@@ -10,6 +10,9 @@ const {
   adminGetOrders,
   adminGetOrder,
   updateOrderStatus,
+  // site config
+  getHomepageConfig,
+  updateHomepageConfig,
 } = require('../controllers/adminController');
 
 // Tất cả admin routes đều yêu cầu đăng nhập + role admin
@@ -28,5 +31,9 @@ router.delete('/products/:id', deleteProduct);
 router.get('/orders', adminGetOrders);
 router.get('/orders/:id', adminGetOrder);
 router.put('/orders/:id/status', updateOrderStatus);
+
+// Site / Homepage config
+router.get('/site/homepage', getHomepageConfig);
+router.put('/site/homepage', updateHomepageConfig);
 
 module.exports = router;

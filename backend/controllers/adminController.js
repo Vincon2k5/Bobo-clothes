@@ -270,6 +270,42 @@ const updateOrderStatus = async (req, res, next) => {
   }
 };
 
+// ==============================
+// SITE / HOMEPAGE CONFIG
+// ==============================
+const SiteConfig = require('../models/SiteConfig');
+
+/**
+ * @desc Get homepage config (singleton)
+ * @route GET /api/admin/site/homepage
+ */
+const getHomepageConfig = async (req, res, next) => {
+  try {
+    const doc = await SiteConfig.findOne({ key: 'homepage' }).lean();
+    res.json({ success: true, data: doc?.data || {} });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc Update homepage config (upsert)
+ * @route PUT /api/admin/site/homepage
+ */
+const updateHomepageConfig = async (req, res, next) => {
+  try {
+    const payload = req.body || {};
+    const updated = await SiteConfig.findOneAndUpdate(
+      { key: 'homepage' },
+      { data: payload },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+    res.json({ success: true, data: updated.data, message: 'Homepage config updated' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getDashboard,
   adminGetProducts,
@@ -279,4 +315,6 @@ module.exports = {
   adminGetOrders,
   adminGetOrder,
   updateOrderStatus,
+  getHomepageConfig,
+  updateHomepageConfig,
 };

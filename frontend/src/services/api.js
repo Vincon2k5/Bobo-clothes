@@ -84,6 +84,9 @@ export const adminApi = {
   getOrders: (params) => api.get('/admin/orders', { params }),
   getOrder: (id) => api.get(`/admin/orders/${id}`),
   updateOrderStatus: (id, data) => api.put(`/admin/orders/${id}/status`, data),
+  // Site config
+  getSiteHomepage: () => api.get('/admin/site/homepage'),
+  updateSiteHomepage: (data) => api.put('/admin/site/homepage', data),
 };
 
 export default api;
