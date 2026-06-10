@@ -15,6 +15,7 @@ const cartRoutes = require('./routes/cartRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const siteRoutes = require('./routes/siteRoutes');
 
 // ==============================
 // Khởi tạo Express app
@@ -146,6 +147,7 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/site', siteRoutes);
 app.use('/api/orders/checkout', checkoutLimiter); // Rate limit checkout endpoint
 
 // Health check endpoint

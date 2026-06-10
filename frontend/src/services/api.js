@@ -89,4 +89,8 @@ export const adminApi = {
   updateSiteHomepage: (data) => api.put('/admin/site/homepage', data),
 };
 
+export const siteApi = {
+  getHomepage: () => api.get('/site/homepage'),
+};
+
 export default api;

@@ -3,15 +3,25 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { productApi } from '../services/api';
 import ProductCard from '../components/ProductCard/ProductCard';
+import { resolveImageUrl } from '../utils/image';
 
 const HomePage = () => {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [newArrivals, setNewArrivals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [homepageConfig, setHomepageConfig] = useState(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
+        // Fetch public homepage config (hero image/title/subtitle)
+        try {
+          const cfg = await import('../services/api').then(m => m.siteApi.getHomepage());
+          setHomepageConfig(cfg.data || null);
+        } catch (err) {
+          // ignore if not available
+          console.warn('Could not fetch homepage config:', err.message);
+        }
         const [featured, arrivals] = await Promise.all([
           productApi.getAll({ featured: true, limit: 4 }),
           productApi.getAll({ tags: 'new-arrival', sort: '-createdAt', limit: 4 }),
@@ -33,20 +43,18 @@ const HomePage = () => {
       <section className="relative h-[80vh] min-h-[500px] bg-bobo-cream flex items-center overflow-hidden">
         <div className="absolute inset-0">
           <img
-            src="https://via.placeholder.com/1920x1080?text=BoBo+Fashion+Hero"
-            alt="BoBo Fashion Hero"
+            src={resolveImageUrl(homepageConfig?.heroImage) || ''}
+            alt={homepageConfig?.heroTitle || 'BoBo Fashion Hero'}
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-black/30" />
         </div>
         <div className="relative container-main text-white">
-          <p className="text-sm tracking-[0.3em] uppercase mb-4 opacity-80">BST Hè 2025</p>
+          <p className="text-sm tracking-[0.3em] uppercase mb-4 opacity-80">{homepageConfig?.preTitle || 'BST Hè 2025'}</p>
           <h1 className="font-serif text-5xl md:text-7xl font-semibold leading-tight mb-6 max-w-2xl">
-            Phong Cách<br />Là Bạn
+            {homepageConfig?.heroTitle || 'Phong Cách\nLà Bạn'}
           </h1>
-          <p className="text-lg opacity-90 mb-8 max-w-md">
-            Khám phá bộ sưu tập thời trang mới nhất từ BoBo — trẻ trung, tươi mới và đầy cá tính.
-          </p>
+          <p className="text-lg opacity-90 mb-8 max-w-md">{homepageConfig?.heroSubtitle || 'Khám phá bộ sưu tập thời trang mới nhất từ BoBo — trẻ trung, tươi mới và đầy cá tính.'}</p>
           <div className="flex gap-4 flex-wrap">
             <Link to="/products" className="btn-primary bg-white text-bobo-black hover:bg-bobo-gray-100 px-8 py-3.5">
               Mua sắm ngay
