@@ -72,10 +72,10 @@ const HomePage = () => {
         <h2 className="font-serif text-3xl text-center mb-10">Mua sắm theo danh mục</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { to: '/products?category=ao', label: 'Áo', img: placeholderImg },
-            { to: '/products?category=quan', label: 'Quần', img: placeholderImg },
-            { to: '/products?category=vay', label: 'Váy & Đầm', img: placeholderImg },
-            { to: '/products?category=phu-kien', label: 'Phụ Kiện', img: placeholderImg },
+            { to: '/products?category=ao', label: 'Áo', img: resolveImageUrl(homepageConfig?.categoryTiles?.[0]?.img) || placeholderImg },
+            { to: '/products?category=quan', label: 'Quần', img: resolveImageUrl(homepageConfig?.categoryTiles?.[1]?.img) || placeholderImg },
+            { to: '/products?category=vay', label: 'Váy & Đầm', img: resolveImageUrl(homepageConfig?.categoryTiles?.[2]?.img) || placeholderImg },
+            { to: '/products?category=phu-kien', label: 'Phụ Kiện', img: resolveImageUrl(homepageConfig?.categoryTiles?.[3]?.img) || placeholderImg },
           ].map((cat) => (
             <Link
               key={cat.to}

@@ -8,7 +8,7 @@ const HomepageSettingsPage = () => {
     heroImage: '',
     heroTitle: '',
     heroSubtitle: '',
-    categoryTiles: [], // [{label, img, to}]
+    categoryTiles: [{ img: '' }, { img: '' }, { img: '' }, { img: '' }],
     featuredProductIds: [],
   });
 
@@ -16,7 +16,10 @@ const HomepageSettingsPage = () => {
     const load = async () => {
       try {
         const res = await adminApi.getSiteHomepage();
-        setForm((prev) => ({ ...prev, ...(res.data || {}) }));
+        const data = res.data || {};
+        const defaultTiles = [{ img: '' }, { img: '' }, { img: '' }, { img: '' }];
+        const tiles = defaultTiles.map((def, i) => ({ ...def, ...(data.categoryTiles?.[i] || {}) }));
+        setForm((prev) => ({ ...prev, ...data, categoryTiles: tiles }));
       } catch (err) {
         toast.error(err.message);
       } finally {
@@ -27,6 +30,12 @@ const HomepageSettingsPage = () => {
   }, []);
 
   const updateField = (field, value) => setForm((p) => ({ ...p, [field]: value }));
+  const updateCategoryTile = (index, value) =>
+    setForm((p) => {
+      const tiles = [...(p.categoryTiles || [{ img: '' }, { img: '' }, { img: '' }, { img: '' }])];
+      tiles[index] = { ...tiles[index], img: value };
+      return { ...p, categoryTiles: tiles };
+    });
 
   const handleSave = async () => {
     try {
@@ -57,6 +66,29 @@ const HomepageSettingsPage = () => {
           <label className="block text-sm font-medium mb-2">Featured Product IDs (comma separated)</label>
           <input type="text" value={(form.featuredProductIds || []).join(',')} onChange={(e) => updateField('featuredProductIds', e.target.value.split(',').map(s=>s.trim()).filter(Boolean))} className="input-base w-full" />
           <p className="text-xs text-gray-500 mt-2">Bạn có thể dán list product IDs từ trang Products (admin)</p>
+        </div>
+
+        <div className="p-4 bg-white border rounded md:col-span-2">
+          <p className="text-sm font-medium mb-3">Ảnh danh mục (Category Tiles)</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { label: 'Áo', index: 0 },
+              { label: 'Quần', index: 1 },
+              { label: 'Váy & Đầm', index: 2 },
+              { label: 'Phụ Kiện', index: 3 },
+            ].map(({ label, index }) => (
+              <div key={index}>
+                <label className="block text-xs text-gray-500 mb-1">{label}</label>
+                <input
+                  type="text"
+                  placeholder="URL ảnh..."
+                  value={form.categoryTiles?.[index]?.img || ''}
+                  onChange={(e) => updateCategoryTile(index, e.target.value)}
+                  className="input-base w-full text-xs"
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
