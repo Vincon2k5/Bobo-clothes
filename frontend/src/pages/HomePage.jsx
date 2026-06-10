@@ -3,17 +3,12 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { productApi } from '../services/api';
 import ProductCard from '../components/ProductCard/ProductCard';
-import { resolveImageUrl } from '../utils/image';
-import placeholderImg from '../assets/placeholder.svg';
-
-const SLIDE_INTERVAL = 5000;
 
 const HomePage = () => {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [newArrivals, setNewArrivals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [homepageConfig, setHomepageConfig] = useState(null);
-  const [heroIndex, setHeroIndex] = useState(0);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -41,36 +36,17 @@ const HomePage = () => {
     fetchProducts();
   }, []);
 
-  const heroImages = (() => {
-    const imgs = (homepageConfig?.heroImages || [])
-      .map((url) => resolveImageUrl(url))
-      .filter(Boolean);
-    if (imgs.length === 0) {
-      const single = resolveImageUrl(homepageConfig?.heroImage);
-      return single ? [single] : [placeholderImg];
-    }
-    return imgs;
-  })();
-
-  useEffect(() => {
-    if (heroImages.length <= 1) return;
-    const timer = setInterval(() => setHeroIndex((i) => (i + 1) % heroImages.length), SLIDE_INTERVAL);
-    return () => clearInterval(timer);
-  }, [heroImages.length]);
-
   return (
     <main>
       {/* Hero Section */}
       <section className="relative h-[80vh] min-h-[500px] bg-bobo-cream flex items-center overflow-hidden">
         <div className="absolute inset-0">
-          {heroImages.map((src, i) => (
-            <img
-              key={src}
-              src={src}
-              alt={homepageConfig?.heroTitle || 'BoBo Fashion Hero'}
-              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${i === heroIndex ? 'opacity-100' : 'opacity-0'}`}
-            />
-          ))}
+          <img
+            src={homepageConfig?.heroImage || 'https://via.placeholder.com/1920x1080?text=BoBo+Fashion+Hero'}
+            alt={homepageConfig?.heroTitle || 'BoBo Fashion Hero'}
+            className="w-full h-full object-cover"
+            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://via.placeholder.com/1920x1080?text=BoBo+Fashion+Hero'; }}
+          />
           <div className="absolute inset-0 bg-black/30" />
         </div>
         <div className="relative container-main text-white">
@@ -88,18 +64,6 @@ const HomePage = () => {
             </Link>
           </div>
         </div>
-        {heroImages.length > 1 && (
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-            {heroImages.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setHeroIndex(i)}
-                className={`w-2 h-2 rounded-full transition-all ${i === heroIndex ? 'bg-white w-6' : 'bg-white/50'}`}
-                aria-label={`Ảnh ${i + 1}`}
-              />
-            ))}
-          </div>
-        )}
       </section>
 
       {/* Category Grid */}
@@ -107,10 +71,10 @@ const HomePage = () => {
         <h2 className="font-serif text-3xl text-center mb-10">Mua sắm theo danh mục</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { to: '/products?category=ao', label: 'Áo', img: resolveImageUrl(homepageConfig?.categoryTiles?.[0]?.img) || placeholderImg },
-            { to: '/products?category=quan', label: 'Quần', img: resolveImageUrl(homepageConfig?.categoryTiles?.[1]?.img) || placeholderImg },
-            { to: '/products?category=vay', label: 'Váy & Đầm', img: resolveImageUrl(homepageConfig?.categoryTiles?.[2]?.img) || placeholderImg },
-            { to: '/products?category=phu-kien', label: 'Phụ Kiện', img: resolveImageUrl(homepageConfig?.categoryTiles?.[3]?.img) || placeholderImg },
+            { to: '/products?category=ao', label: 'Áo', img: 'https://via.placeholder.com/400x500?text=Áo' },
+            { to: '/products?category=quan', label: 'Quần', img: 'https://via.placeholder.com/400x500?text=Quần' },
+            { to: '/products?category=vay', label: 'Váy & Đầm', img: 'https://via.placeholder.com/400x500?text=Váy' },
+            { to: '/products?category=phu-kien', label: 'Phụ Kiện', img: 'https://via.placeholder.com/400x500?text=Phụ+Kiện' },
           ].map((cat) => (
             <Link
               key={cat.to}
