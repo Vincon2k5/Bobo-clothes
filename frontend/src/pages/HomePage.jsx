@@ -1,24 +1,27 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import { productApi } from '../services/api';
+import { productApi, siteApi } from '../services/api';
 import ProductCard from '../components/ProductCard/ProductCard';
+import { resolveImageUrl } from '../utils/image';
+import placeholderImg from '../assets/placeholder.svg';
+
+const SLIDE_INTERVAL = 5000;
 
 const HomePage = () => {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [newArrivals, setNewArrivals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [homepageConfig, setHomepageConfig] = useState(null);
+  const [heroIndex, setHeroIndex] = useState(0);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        // Fetch public homepage config (hero image/title/subtitle)
         try {
-          const cfg = await import('../services/api').then(m => m.siteApi.getHomepage());
+          const cfg = await siteApi.getHomepage();
           setHomepageConfig(cfg.data || null);
         } catch (err) {
-          // ignore if not available
           console.warn('Could not fetch homepage config:', err.message);
         }
         const [featured, arrivals] = await Promise.all([
@@ -36,19 +39,46 @@ const HomePage = () => {
     fetchProducts();
   }, []);
 
+  const heroImages = (() => {
+    const imgs = (homepageConfig?.heroImages || [])
+      .map((url) => resolveImageUrl(url))
+      .filter(Boolean);
+    if (imgs.length === 0) {
+      const single = resolveImageUrl(homepageConfig?.heroImage);
+      return single ? [single] : [placeholderImg];
+    }
+    return imgs;
+  })();
+
+  useEffect(() => {
+    if (heroImages.length <= 1) return;
+    const id = setInterval(() => setHeroIndex((i) => (i + 1) % heroImages.length), SLIDE_INTERVAL);
+    return () => clearInterval(id);
+  }, [heroImages.length]);
+
+  const categoryTiles = [
+    { to: '/products?category=ao', label: 'Áo', img: resolveImageUrl(homepageConfig?.categoryTiles?.[0]?.img) || placeholderImg },
+    { to: '/products?category=quan', label: 'Quần', img: resolveImageUrl(homepageConfig?.categoryTiles?.[1]?.img) || placeholderImg },
+    { to: '/products?category=vay', label: 'Váy & Đầm', img: resolveImageUrl(homepageConfig?.categoryTiles?.[2]?.img) || placeholderImg },
+    { to: '/products?category=phu-kien', label: 'Phụ Kiện', img: resolveImageUrl(homepageConfig?.categoryTiles?.[3]?.img) || placeholderImg },
+  ];
+
   return (
     <main>
       {/* Hero Section */}
       <section className="relative h-[80vh] min-h-[500px] bg-bobo-cream flex items-center overflow-hidden">
         <div className="absolute inset-0">
-          <img
-            src={homepageConfig?.heroImage || 'https://via.placeholder.com/1920x1080?text=BoBo+Fashion+Hero'}
-            alt={homepageConfig?.heroTitle || 'BoBo Fashion Hero'}
-            className="w-full h-full object-cover"
-            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://via.placeholder.com/1920x1080?text=BoBo+Fashion+Hero'; }}
-          />
+          {heroImages.map((src, i) => (
+            <img
+              key={i}
+              src={src}
+              alt={homepageConfig?.heroTitle || 'BoBo Fashion Hero'}
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${i === heroIndex ? 'opacity-100' : 'opacity-0'}`}
+            />
+          ))}
           <div className="absolute inset-0 bg-black/30" />
         </div>
+
         <div className="relative container-main text-white">
           <p className="text-sm tracking-[0.3em] uppercase mb-4 opacity-80">{homepageConfig?.preTitle || 'BST Hè 2025'}</p>
           <h1 className="font-serif text-5xl md:text-7xl font-semibold leading-tight mb-6 max-w-2xl">
@@ -64,18 +94,25 @@ const HomePage = () => {
             </Link>
           </div>
         </div>
+
+        {heroImages.length > 1 && (
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+            {heroImages.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setHeroIndex(i)}
+                className={`w-2 h-2 rounded-full transition-all ${i === heroIndex ? 'bg-white w-6' : 'bg-white/50'}`}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Category Grid */}
       <section className="container-main py-16">
         <h2 className="font-serif text-3xl text-center mb-10">Mua sắm theo danh mục</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { to: '/products?category=ao', label: 'Áo', img: 'https://via.placeholder.com/400x500?text=Áo' },
-            { to: '/products?category=quan', label: 'Quần', img: 'https://via.placeholder.com/400x500?text=Quần' },
-            { to: '/products?category=vay', label: 'Váy & Đầm', img: 'https://via.placeholder.com/400x500?text=Váy' },
-            { to: '/products?category=phu-kien', label: 'Phụ Kiện', img: 'https://via.placeholder.com/400x500?text=Phụ+Kiện' },
-          ].map((cat) => (
+          {categoryTiles.map((cat) => (
             <Link
               key={cat.to}
               to={cat.to}
