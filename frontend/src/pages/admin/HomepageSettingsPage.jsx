@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 const HomepageSettingsPage = () => {
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
-    heroImage: '',
+    heroImages: [''],
     heroTitle: '',
     heroSubtitle: '',
     categoryTiles: [{ img: '' }, { img: '' }, { img: '' }, { img: '' }],
@@ -19,7 +19,8 @@ const HomepageSettingsPage = () => {
         const data = res.data || {};
         const defaultTiles = [{ img: '' }, { img: '' }, { img: '' }, { img: '' }];
         const tiles = defaultTiles.map((def, i) => ({ ...def, ...(data.categoryTiles?.[i] || {}) }));
-        setForm((prev) => ({ ...prev, ...data, categoryTiles: tiles }));
+        const heroImages = data.heroImages?.length ? data.heroImages : (data.heroImage ? [data.heroImage] : ['']);
+        setForm((prev) => ({ ...prev, ...data, heroImages, categoryTiles: tiles }));
       } catch (err) {
         toast.error(err.message);
       } finally {
@@ -30,6 +31,13 @@ const HomepageSettingsPage = () => {
   }, []);
 
   const updateField = (field, value) => setForm((p) => ({ ...p, [field]: value }));
+
+  const updateHeroImage = (index, value) =>
+    setForm((p) => { const imgs = [...p.heroImages]; imgs[index] = value; return { ...p, heroImages: imgs }; });
+  const addHeroImage = () =>
+    setForm((p) => ({ ...p, heroImages: [...p.heroImages, ''] }));
+  const removeHeroImage = (index) =>
+    setForm((p) => ({ ...p, heroImages: p.heroImages.filter((_, i) => i !== index) }));
   const updateCategoryTile = (index, value) =>
     setForm((p) => {
       const tiles = [...(p.categoryTiles || [{ img: '' }, { img: '' }, { img: '' }, { img: '' }])];
@@ -54,9 +62,29 @@ const HomepageSettingsPage = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="p-4 bg-white border rounded">
-          <label className="block text-sm font-medium mb-2">Hero Image (URL)</label>
-          <input type="text" value={form.heroImage || ''} onChange={(e) => updateField('heroImage', e.target.value)} className="input-base w-full" />
-          <label className="block text-sm font-medium mt-3 mb-2">Hero Title</label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-sm font-medium">Hero Images (slideshow)</label>
+            <button type="button" onClick={addHeroImage} className="text-xs text-blue-600 hover:underline">+ Thêm ảnh</button>
+          </div>
+          <div className="space-y-2">
+            {(form.heroImages || ['']).map((url, i) => (
+              <div key={i} className="flex gap-2 items-center">
+                <span className="text-xs text-gray-400 w-5 shrink-0">{i + 1}.</span>
+                <input
+                  type="text"
+                  placeholder="URL ảnh..."
+                  value={url}
+                  onChange={(e) => updateHeroImage(i, e.target.value)}
+                  className="input-base flex-1"
+                />
+                {form.heroImages.length > 1 && (
+                  <button type="button" onClick={() => removeHeroImage(i)} className="text-red-400 hover:text-red-600 text-lg leading-none">×</button>
+                )}
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-gray-400 mt-2">Nhiều ảnh sẽ tự động chuyển sau mỗi 5 giây.</p>
+          <label className="block text-sm font-medium mt-4 mb-2">Hero Title</label>
           <input type="text" value={form.heroTitle || ''} onChange={(e) => updateField('heroTitle', e.target.value)} className="input-base w-full" />
           <label className="block text-sm font-medium mt-3 mb-2">Hero Subtitle</label>
           <input type="text" value={form.heroSubtitle || ''} onChange={(e) => updateField('heroSubtitle', e.target.value)} className="input-base w-full" />
