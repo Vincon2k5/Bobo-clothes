@@ -4,6 +4,7 @@ import { ArrowRight } from 'lucide-react';
 import { productApi } from '../services/api';
 import ProductCard from '../components/ProductCard/ProductCard';
 import { resolveImageUrl } from '../utils/image';
+import placeholderImg from '../assets/placeholder.svg';
 
 const HomePage = () => {
   const [featuredProducts, setFeaturedProducts] = useState([]);
@@ -43,7 +44,7 @@ const HomePage = () => {
       <section className="relative h-[80vh] min-h-[500px] bg-bobo-cream flex items-center overflow-hidden">
         <div className="absolute inset-0">
           <img
-            src={resolveImageUrl(homepageConfig?.heroImage) || ''}
+            src={resolveImageUrl(homepageConfig?.heroImage) || placeholderImg}
             alt={homepageConfig?.heroTitle || 'BoBo Fashion Hero'}
             className="w-full h-full object-cover"
           />
@@ -71,10 +72,10 @@ const HomePage = () => {
         <h2 className="font-serif text-3xl text-center mb-10">Mua sắm theo danh mục</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { to: '/products?category=ao', label: 'Áo', img: 'https://via.placeholder.com/400x500?text=Áo' },
-            { to: '/products?category=quan', label: 'Quần', img: 'https://via.placeholder.com/400x500?text=Quần' },
-            { to: '/products?category=vay', label: 'Váy & Đầm', img: 'https://via.placeholder.com/400x500?text=Váy' },
-            { to: '/products?category=phu-kien', label: 'Phụ Kiện', img: 'https://via.placeholder.com/400x500?text=Phụ+Kiện' },
+            { to: '/products?category=ao', label: 'Áo', img: placeholderImg },
+            { to: '/products?category=quan', label: 'Quần', img: placeholderImg },
+            { to: '/products?category=vay', label: 'Váy & Đầm', img: placeholderImg },
+            { to: '/products?category=phu-kien', label: 'Phụ Kiện', img: placeholderImg },
           ].map((cat) => (
             <Link
               key={cat.to}
