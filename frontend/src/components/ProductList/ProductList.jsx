@@ -73,7 +73,9 @@ const ProductList = () => {
       const next = new URLSearchParams(prev);
       if (value) next.set(key, value);
       else next.delete(key);
-      next.delete('page'); // Reset page khi filter thay đổi
+      // Filters/sort start again from page 1, but changing the page itself
+      // must preserve the newly selected page.
+      if (key !== 'page') next.delete('page');
       return next;
     });
   };
