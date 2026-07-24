@@ -65,15 +65,5 @@ Mở trình duyệt: `http://localhost:5173`
         │   ├── CartPage.jsx      # Giỏ hàng
         │   └── CheckoutPage.jsx  # Guest Checkout + 3 bước
         └── services/api.js       # Axios instance + API functions
-```
 
-## Tích hợp bên thứ 3
 
-Mở file tương ứng và làm theo hướng dẫn trong comments:
-
-| Service | File | Docs |
-|---------|------|------|
-| Giao Hàng Nhanh | `backend/services/shippingService.js` | https://ghn.vn |
-| MoMo | `backend/services/paymentService.js` | https://developers.momo.vn |
-| ZaloPay | `backend/services/paymentService.js` | https://docs.zalopay.vn |
-| VietQR | Đã tích hợp (không cần API key) | https://vietqr.io |
