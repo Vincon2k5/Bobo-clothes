@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { User, Package, LogOut, ChevronRight, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -317,7 +317,9 @@ const AccountDashboard = () => {
   };
 
   // Load đơn hàng ngay khi vào dashboard
-  useState(() => { handleTabChange('orders'); }, []);
+  useEffect(() => {
+    handleTabChange('orders');
+  }, []);
 
   const handleLogout = () => {
     logout();

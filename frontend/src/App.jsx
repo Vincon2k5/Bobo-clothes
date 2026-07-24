@@ -12,6 +12,7 @@ import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import LoginPage from './pages/LoginPage';
 import AccountPage from './pages/AccountPage';
+import OrderStatusPage from './pages/OrderStatusPage';
 import ProductList from './components/ProductList/ProductList';
 // Admin Pages
 import DashboardPage from './pages/admin/DashboardPage';
@@ -29,22 +30,6 @@ const ShopLayout = ({ children }) => (
     <Footer />
   </>
 );
-
-const CheckoutResultPage = () => {
-  const params = new URLSearchParams(window.location.search);
-  return (
-    <div className="container-main py-20 text-center">
-      <div className="text-6xl mb-4">🎉</div>
-      <h1 className="text-2xl font-serif font-semibold mb-2">Đặt hàng thành công!</h1>
-      <p className="text-bobo-gray-500 mb-2">Mã đơn hàng:</p>
-      <p className="text-xl font-bold tracking-wider mb-6">{params.get('orderCode')}</p>
-      <p className="text-sm text-bobo-gray-500 mb-8">
-        Chúng tôi đã gửi xác nhận tới email của bạn.
-      </p>
-      <a href="/" className="btn-primary inline-block px-10">Tiếp tục mua sắm</a>
-    </div>
-  );
-};
 
 const App = () => {
   return (
@@ -128,7 +113,23 @@ const App = () => {
           path="/checkout/result"
           element={
             <ShopLayout>
-              <CheckoutResultPage />
+              <OrderStatusPage checkoutResult />
+            </ShopLayout>
+          }
+        />
+        <Route
+          path="/orders/:orderCode"
+          element={
+            <ShopLayout>
+              <OrderStatusPage />
+            </ShopLayout>
+          }
+        />
+        <Route
+          path="/account/orders/:orderCode"
+          element={
+            <ShopLayout>
+              <OrderStatusPage />
             </ShopLayout>
           }
         />

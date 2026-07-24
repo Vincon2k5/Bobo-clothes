@@ -126,6 +126,14 @@ const CheckoutPage = () => {
       const response = await orderApi.create(orderPayload);
       const { order, paymentUrl, qrData } = response.data;
 
+      try {
+        const contacts = JSON.parse(localStorage.getItem('bobo_order_contacts') || '{}');
+        contacts[order.orderCode] = form.email;
+        localStorage.setItem('bobo_order_contacts', JSON.stringify(contacts));
+      } catch {
+        // Order creation must still succeed if localStorage is unavailable.
+      }
+
       // Chuyển hướng theo payment method
       if (paymentUrl) {
         // MoMo / ZaloPay → redirect tới payment gateway
@@ -133,12 +141,12 @@ const CheckoutPage = () => {
       } else if (qrData) {
         // VietQR → hiện QR code ở trang kết quả
         navigate(`/checkout/result?orderCode=${order.orderCode}&method=vietqr`, {
-          state: { qrData, order },
+          state: { qrData, order, email: form.email },
         });
       } else {
         // COD → trang xác nhận đơn
         navigate(`/checkout/result?orderCode=${order.orderCode}`, {
-          state: { order },
+          state: { order, email: form.email },
         });
       }
     } catch (error) {
