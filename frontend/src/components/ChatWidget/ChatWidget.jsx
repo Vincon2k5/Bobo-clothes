@@ -5,14 +5,16 @@ import { chatApi } from '../../services/api';
 import { resolveImageUrl } from '../../utils/image';
 import placeholder from '../../assets/placeholder.svg';
 
+const STORAGE_KEY = 'bobo_internal_chat_messages';
+
 const WELCOME_MESSAGE = {
   role: 'assistant',
-  content: 'Xin chào! Mình là BoBo AI. Bạn muốn tìm sản phẩm, chọn size hay gợi ý phối đồ?',
+  content: 'Xin chào! Mình là trợ lý BoBo. Bạn muốn tìm sản phẩm theo loại, màu, size hay ngân sách?',
 };
 
 const loadMessages = () => {
   try {
-    const saved = JSON.parse(sessionStorage.getItem('bobo_chat_messages') || '[]');
+    const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '[]');
     return Array.isArray(saved) && saved.length ? saved : [WELCOME_MESSAGE];
   } catch {
     return [WELCOME_MESSAGE];
@@ -27,7 +29,7 @@ const ChatWidget = () => {
   const bottomRef = useRef(null);
 
   useEffect(() => {
-    sessionStorage.setItem('bobo_chat_messages', JSON.stringify(messages.slice(-20)));
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-20)));
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isOpen]);
 
@@ -60,7 +62,7 @@ const ChatWidget = () => {
         ...current,
         {
           role: 'assistant',
-          content: error.message || 'Xin lỗi, BoBo AI đang bận. Bạn vui lòng thử lại sau.',
+          content: error.message || 'Xin lỗi, trợ lý BoBo đang bận. Bạn vui lòng thử lại sau.',
           isError: true,
         },
       ]);
@@ -77,14 +79,14 @@ const ChatWidget = () => {
       {isOpen && (
         <section
           className="mb-3 flex h-[min(620px,calc(100vh-130px))] w-[min(390px,calc(100vw-32px))] flex-col overflow-hidden rounded-2xl border border-bobo-gray-200 bg-white shadow-2xl"
-          aria-label="Chat với BoBo AI"
+          aria-label="Chat với trợ lý BoBo"
         >
           <header className="flex items-center gap-3 bg-bobo-black px-4 py-3.5 text-white">
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-bobo-black">
               <Bot size={20} />
             </span>
             <div className="flex-1">
-              <h2 className="text-sm font-semibold">BoBo AI</h2>
+              <h2 className="text-sm font-semibold">Trợ lý BoBo</h2>
               <p className="text-xs text-white/70">Trợ lý mua sắm</p>
             </div>
             <button
@@ -143,7 +145,7 @@ const ChatWidget = () => {
             {sending && (
               <div className="mr-auto flex items-center gap-2 rounded-2xl rounded-bl-sm border border-bobo-gray-100 bg-white px-4 py-3 text-sm text-bobo-gray-500">
                 <Loader2 size={15} className="animate-spin" />
-                BoBo AI đang trả lời...
+                Trợ lý đang tìm sản phẩm...
               </div>
             )}
             <div ref={bottomRef} />
@@ -161,7 +163,7 @@ const ChatWidget = () => {
               }}
               rows={1}
               maxLength={1000}
-              placeholder="Hỏi BoBo AI..."
+              placeholder="Tìm sản phẩm hoặc hỏi chính sách..."
               className="max-h-28 min-h-11 flex-1 resize-none rounded-xl border border-bobo-gray-200 px-3 py-2.5 text-sm focus:border-bobo-black focus:outline-none"
               aria-label="Tin nhắn"
             />
@@ -181,7 +183,7 @@ const ChatWidget = () => {
         type="button"
         onClick={() => setIsOpen((open) => !open)}
         className="ml-auto flex h-14 w-14 items-center justify-center rounded-full bg-bobo-black text-white shadow-lg transition-transform hover:scale-105"
-        aria-label={isOpen ? 'Đóng BoBo AI' : 'Mở BoBo AI'}
+        aria-label={isOpen ? 'Đóng trợ lý BoBo' : 'Mở trợ lý BoBo'}
       >
         {isOpen ? <X size={24} /> : <MessageCircle size={25} />}
       </button>
