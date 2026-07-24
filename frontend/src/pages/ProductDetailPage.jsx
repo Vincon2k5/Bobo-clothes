@@ -36,6 +36,15 @@ const ProductDetailPage = () => {
           productRes.data.variants.filter((v) => v.stock > 0).map((v) => v.color)
         )][0];
         setSelectedColor(firstAvailableColor || null);
+
+        const firstColorSizes = [...new Set(
+          productRes.data.variants
+            .filter((v) => v.stock > 0 && v.color === firstAvailableColor)
+            .map((v) => v.size)
+        )];
+        setSelectedSize(firstColorSizes.length === 1 && firstColorSizes[0] === 'ONE SIZE'
+          ? 'ONE SIZE'
+          : null);
       } catch (error) {
         console.error(error);
       } finally {
@@ -81,22 +90,28 @@ const ProductDetailPage = () => {
     .filter((v) => (!selectedColor || v.color === selectedColor) && v.stock > 0)
     .map((v) => v.size);
 
+  const productSizes = [...new Set(
+    variants.filter((v) => v.stock > 0).map((v) => v.size)
+  )];
+  const isOneSizeProduct = productSizes.length === 1 && productSizes[0] === 'ONE SIZE';
+  const effectiveSize = selectedSize || (isOneSizeProduct ? 'ONE SIZE' : null);
+
   // Tồn kho của variant đang chọn
-  const selectedVariant = selectedColor && selectedSize
-    ? variants.find((v) => v.color === selectedColor && v.size === selectedSize)
+  const selectedVariant = selectedColor && effectiveSize
+    ? variants.find((v) => v.color === selectedColor && v.size === effectiveSize)
     : null;
 
   const displayPrice = salePrice && salePrice < basePrice ? salePrice : basePrice;
   const formatPrice = (p) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p);
 
   const handleAddToCart = async () => {
-    if (!selectedSize) { setSizeError('Vui lòng chọn kích cỡ'); return; }
+    if (!effectiveSize) { setSizeError('Vui lòng chọn kích cỡ'); return; }
     if (!selectedColor) { setSizeError('Vui lòng chọn màu sắc'); return; }
 
     try {
       setIsAddingToCart(true);
       setSizeError('');
-      await addToCart({ productId: product._id, size: selectedSize, color: selectedColor, quantity: 1 });
+      await addToCart({ productId: product._id, size: effectiveSize, color: selectedColor, quantity: 1 });
     } catch (err) {
       toast.error(err.message);
     } finally {
@@ -173,7 +188,18 @@ const ProductDetailPage = () => {
               {uniqueColors.map((v) => (
                 <button
                   key={v.color}
-                  onClick={() => { setSelectedColor(v.color); setSelectedSize(null); setSizeError(''); }}
+                  onClick={() => {
+                    const colorSizes = [...new Set(
+                      variants
+                        .filter((variant) => variant.color === v.color && variant.stock > 0)
+                        .map((variant) => variant.size)
+                    )];
+                    setSelectedColor(v.color);
+                    setSelectedSize(colorSizes.length === 1 && colorSizes[0] === 'ONE SIZE'
+                      ? 'ONE SIZE'
+                      : null);
+                    setSizeError('');
+                  }}
                   title={v.color}
                   className={`w-8 h-8 rounded-full border-4 transition-all duration-150
                     ${selectedColor === v.color ? 'border-bobo-black' : 'border-bobo-gray-100 hover:border-bobo-gray-300'}`}
@@ -185,33 +211,44 @@ const ProductDetailPage = () => {
 
           {/* Size Selector */}
           <div className="mb-6">
-            <div className="flex items-center justify-between mb-2.5">
-              <p className="text-sm font-semibold uppercase tracking-wide">Kích cỡ</p>
-              <Link to="/pages/size-guide" className="text-xs text-bobo-gray-500 hover:text-bobo-black underline">
-                Hướng dẫn chọn size
-              </Link>
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map((size) => {
-                const available = availableSizes.includes(size);
-                return (
-                  <button
-                    key={size}
-                    disabled={!available}
-                    onClick={() => { setSelectedSize(size); setSizeError(''); }}
-                    className={`min-w-[52px] h-12 px-3 text-sm font-medium border transition-all
-                      ${!available
-                        ? 'border-bobo-gray-100 text-bobo-gray-300 cursor-not-allowed line-through'
-                        : selectedSize === size
-                        ? 'border-bobo-black bg-bobo-black text-white'
-                        : 'border-bobo-gray-200 hover:border-bobo-black'
-                      }`}
-                  >
-                    {size}
-                  </button>
-                );
-              })}
-            </div>
+            {isOneSizeProduct ? (
+              <>
+                <p className="mb-2.5 text-sm font-semibold uppercase tracking-wide">Kích cỡ</p>
+                <div className="inline-flex h-12 items-center border border-bobo-black bg-bobo-black px-4 text-sm font-medium text-white">
+                  Một kích cỡ
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-2.5">
+                  <p className="text-sm font-semibold uppercase tracking-wide">Kích cỡ</p>
+                  <Link to="/pages/size-guide" className="text-xs text-bobo-gray-500 hover:text-bobo-black underline">
+                    Hướng dẫn chọn size
+                  </Link>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  {productSizes.map((size) => {
+                    const available = availableSizes.includes(size);
+                    return (
+                      <button
+                        key={size}
+                        disabled={!available}
+                        onClick={() => { setSelectedSize(size); setSizeError(''); }}
+                        className={`min-w-[52px] h-12 px-3 text-sm font-medium border transition-all
+                          ${!available
+                            ? 'border-bobo-gray-100 text-bobo-gray-300 cursor-not-allowed line-through'
+                            : selectedSize === size
+                            ? 'border-bobo-black bg-bobo-black text-white'
+                            : 'border-bobo-gray-200 hover:border-bobo-black'
+                          }`}
+                      >
+                        {size}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
             {sizeError && <p className="text-red-500 text-sm mt-2">{sizeError}</p>}
             {selectedVariant && (
               <p className="text-xs text-bobo-gray-500 mt-2">
