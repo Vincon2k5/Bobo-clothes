@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Save } from 'lucide-react';
 import { adminApi } from '../../services/api';
 import toast from 'react-hot-toast';
 
@@ -60,6 +60,26 @@ const OrderDetailPage = () => {
       setOrder(res.data);
       setNote('');
       toast.success('Đã cập nhật đơn hàng!');
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleConfirmOrder = async () => {
+    if (!window.confirm(`Xác nhận đơn hàng ${order.orderCode}?`)) return;
+
+    try {
+      setSaving(true);
+      const res = await adminApi.updateOrderStatus(id, {
+        status: 'confirmed',
+        note: note || 'Đơn hàng đã được admin xác nhận',
+      });
+      setOrder(res.data);
+      setNewStatus('confirmed');
+      setNote('');
+      toast.success('Đã xác nhận đơn hàng!');
     } catch (err) {
       toast.error(err.message);
     } finally {
@@ -133,6 +153,23 @@ const OrderDetailPage = () => {
           {/* Cập nhật trạng thái */}
           <Card title="Cập nhật trạng thái">
             <div className="space-y-3">
+              {order.status === 'pending' && (
+                <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                  <p className="text-sm font-medium text-blue-900">Đơn hàng đang chờ admin xác nhận</p>
+                  <p className="mt-1 text-xs text-blue-700">
+                    Kiểm tra thông tin khách hàng và sản phẩm trước khi xác nhận.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleConfirmOrder}
+                    disabled={saving}
+                    className="mt-3 flex items-center gap-2 bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
+                  >
+                    <CheckCircle2 size={17} />
+                    {saving ? 'Đang xác nhận...' : 'Xác nhận đơn hàng'}
+                  </button>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium mb-1.5">Trạng thái mới</label>
                 <select
