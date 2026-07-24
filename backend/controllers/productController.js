@@ -47,9 +47,23 @@ const getProducts = async (req, res, next) => {
       query['variants.color'] = { $regex: color, $options: 'i' };
     }
 
-    // Full-text search
-    if (search) {
-      query.$text = { $search: search };
+    // Tìm kiếm một phần tên/mô tả/tag/danh mục. Escape ký tự regex để
+    // tránh ReDoS và không cho phép người dùng chèn biểu thức chính quy.
+    if (search?.trim()) {
+      const escapedSearch = search
+        .trim()
+        .slice(0, 100)
+        .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const searchRegex = new RegExp(escapedSearch, 'i');
+      query.$or = [
+        { name: searchRegex },
+        { description: searchRegex },
+        { shortDescription: searchRegex },
+        { tags: searchRegex },
+        { category: searchRegex },
+        { subCategory: searchRegex },
+        { 'variants.sku': searchRegex },
+      ];
     }
 
     // Tính pagination

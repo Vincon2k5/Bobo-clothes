@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { ShoppingBag, Search, Menu, X, User } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -15,6 +15,9 @@ const NAV_LINKS = [
 ];
 
 const Header = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const searchInputRef = useRef(null);
   const { totalItems, toggleMiniCart, isMiniCartOpen } = useCart();
   const { user } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -29,6 +32,17 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (!isSearchOpen) return;
+    const currentQuery = new URLSearchParams(location.search).get('search') || '';
+    setSearchQuery(currentQuery);
+    requestAnimationFrame(() => searchInputRef.current?.focus());
+  }, [isSearchOpen, location.search]);
+
+  useEffect(() => {
+    setIsSearchOpen(false);
+  }, [location.pathname]);
+
   // Đóng mobile menu khi resize lên desktop
   useEffect(() => {
     const handleResize = () => {
@@ -40,10 +54,14 @@ const Header = () => {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      window.location.href = `/products?search=${encodeURIComponent(searchQuery.trim())}`;
-      setIsSearchOpen(false);
-    }
+    const query = searchQuery.trim();
+    if (!query) return;
+
+    navigate({
+      pathname: '/products',
+      search: `?search=${encodeURIComponent(query)}`,
+    });
+    setIsSearchOpen(false);
   };
 
   return (
@@ -147,13 +165,31 @@ const Header = () => {
           <div className="border-t border-bobo-gray-100 bg-white animate-slide-up">
             <form onSubmit={handleSearchSubmit} className="container-main py-3 flex gap-3">
               <input
+                ref={searchInputRef}
                 type="search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Tìm kiếm áo, quần, váy, phụ kiện..."
                 className="input-base flex-1"
-                autoFocus
+                maxLength={100}
+                aria-label="Nhập từ khóa tìm kiếm sản phẩm"
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') setIsSearchOpen(false);
+                }}
               />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    searchInputRef.current?.focus();
+                  }}
+                  className="px-2 text-bobo-gray-500 hover:text-bobo-black"
+                  aria-label="Xóa từ khóa"
+                >
+                  <X size={18} />
+                </button>
+              )}
               <button type="submit" className="btn-primary px-6 py-2.5 text-sm">
                 Tìm
               </button>
