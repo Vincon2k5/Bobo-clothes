@@ -6,6 +6,7 @@ import Footer from './components/Footer/Footer';
 import AdminLayout from './components/admin/AdminLayout';
 import RequireAdmin from './components/admin/RequireAdmin';
 import ChatWidget from './components/ChatWidget/ChatWidget';
+import RequireAuth from './components/RequireAuth';
 // Public Pages
 import HomePage from './pages/HomePage';
 import ProductDetailPage from './pages/ProductDetailPage';
@@ -107,7 +108,9 @@ const App = () => {
           path="/checkout"
           element={
             <ShopLayout>
-              <CheckoutPage />
+              <RequireAuth>
+                <CheckoutPage />
+              </RequireAuth>
             </ShopLayout>
           }
         />
@@ -115,7 +118,9 @@ const App = () => {
           path="/checkout/result"
           element={
             <ShopLayout>
-              <OrderStatusPage checkoutResult />
+              <RequireAuth>
+                <OrderStatusPage checkoutResult />
+              </RequireAuth>
             </ShopLayout>
           }
         />

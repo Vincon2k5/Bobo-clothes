@@ -4,7 +4,7 @@ const { createOrder, getOrderByCode, getMyOrders, cancelOrder } = require('../co
 const { protect, optionalAuth } = require('../middleware/auth');
 
 // POST /api/orders          - Tạo đơn hàng (guest + user)
-router.post('/', optionalAuth, createOrder);
+router.post('/', protect, createOrder);
 
 // GET /api/orders/my-orders - Đơn hàng của tôi (đăng nhập)
 router.get('/my-orders', protect, getMyOrders);
