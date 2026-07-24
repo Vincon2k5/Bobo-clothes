@@ -5,6 +5,7 @@ import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
 import AdminLayout from './components/admin/AdminLayout';
 import RequireAdmin from './components/admin/RequireAdmin';
+import ChatWidget from './components/ChatWidget/ChatWidget';
 // Public Pages
 import HomePage from './pages/HomePage';
 import ProductDetailPage from './pages/ProductDetailPage';
@@ -28,6 +29,7 @@ const ShopLayout = ({ children }) => (
     <Header />
     {children}
     <Footer />
+    <ChatWidget />
   </>
 );
 

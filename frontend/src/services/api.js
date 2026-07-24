@@ -93,4 +93,8 @@ export const siteApi = {
   getHomepage: () => api.get('/site/homepage'),
 };
 
+export const chatApi = {
+  send: (data) => api.post('/chat', data, { timeout: 30000 }),
+};
+
 export default api;

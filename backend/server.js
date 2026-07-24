@@ -16,6 +16,7 @@ const orderRoutes = require('./routes/orderRoutes');
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const siteRoutes = require('./routes/siteRoutes');
+const chatRoutes = require('./routes/chatRoutes');
 
 // ==============================
 // Khởi tạo Express app
@@ -114,6 +115,17 @@ const checkoutLimiter = rateLimit({
   message: { success: false, message: 'Bạn đã đặt quá nhiều đơn hàng, vui lòng thử lại sau' },
 });
 
+const chatLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: {
+    success: false,
+    message: 'Bạn đã gửi quá nhiều câu hỏi, vui lòng thử lại sau 15 phút',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // ==============================
 // Request Parsing Middlewares
 // ==============================
@@ -148,6 +160,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/site', siteRoutes);
+app.use('/api/chat', chatLimiter, chatRoutes);
 app.use('/api/orders/checkout', checkoutLimiter); // Rate limit checkout endpoint
 
 // Health check endpoint
