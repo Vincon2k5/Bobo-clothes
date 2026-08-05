@@ -156,7 +156,7 @@ const HomePage = () => {
           {[
             { icon: '🚚', title: 'Miễn phí vận chuyển', desc: 'Đơn hàng từ 500K' },
             { icon: '↩️', title: 'Đổi trả 30 ngày', desc: 'Không cần lý do' },
-            { icon: '💳', title: 'Thanh toán linh hoạt', desc: 'COD, MoMo, ZaloPay' },
+            { icon: '💳', title: 'Thanh toán linh hoạt', desc: 'COD và chuyển khoản VietQR' },
             { icon: '🔒', title: 'Bảo mật tuyệt đối', desc: 'SSL 256-bit' },
           ].map((usp) => (
             <div key={usp.title}>

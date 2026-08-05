@@ -93,6 +93,14 @@ const orderSchema = new mongoose.Schema(
     // Lưu transaction ID từ cổng thanh toán
     paymentTransactionId: String,
     paidAt: Date,
+    paymentDetails: {
+      imageUrl: String,
+      bankId: String,
+      accountNo: String,
+      accountName: String,
+      amount: Number,
+      transferContent: String,
+    },
 
     // ==============================
     // Vận chuyển (Giao Hàng Nhanh)

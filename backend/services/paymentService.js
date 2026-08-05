@@ -35,6 +35,27 @@ const processPayment = async ({
   }
 };
 
+/**
+ * Validate online-payment settings before an order is created. This prevents
+ * deducting inventory while the store is still using demo bank information.
+ */
+const validatePaymentConfiguration = (method) => {
+  if (method !== 'vietqr') return;
+
+  const requiredVariables = [
+    'VIETQR_BANK_ID',
+    'VIETQR_ACCOUNT_NO',
+    'VIETQR_ACCOUNT_NAME',
+  ];
+  const missing = requiredVariables.filter((name) => !process.env[name]?.trim());
+
+  if (missing.length > 0) {
+    const error = new Error(`VietQR chưa được cấu hình: thiếu ${missing.join(', ')}`);
+    error.code = 'PAYMENT_NOT_CONFIGURED';
+    throw error;
+  }
+};
+
 // ==============================
 // MoMo Payment
 // ==============================
@@ -150,12 +171,28 @@ const createVietQRPayment = async ({ orderId, orderCode, amount, orderDescriptio
    * Docs: https://vietqr.io/danh-sach-api/generate-qr/
    */
 
-  const bankId = process.env.VIETQR_BANK_ID || 'MB'; // Mặc định MBBank
-  const accountNo = process.env.VIETQR_ACCOUNT_NO || '0123456789';
-  const accountName = process.env.VIETQR_ACCOUNT_NAME || 'CONG TY BOBO FASHION';
+  validatePaymentConfiguration('vietqr');
+
+  const bankId = process.env.VIETQR_BANK_ID.trim();
+  const accountNo = process.env.VIETQR_ACCOUNT_NO.trim();
+  const accountName = process.env.VIETQR_ACCOUNT_NAME.trim();
+  const template = process.env.VIETQR_TEMPLATE?.trim() || 'compact2';
+  const numericAmount = Math.round(Number(amount));
+
+  if (!Number.isSafeInteger(numericAmount) || numericAmount <= 0) {
+    throw new Error('Số tiền thanh toán VietQR không hợp lệ');
+  }
+
+  const transferContent = String(orderCode)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9 ]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 50);
 
   // Template URL VietQR (không cần API key)
-  const vietQRUrl = `https://img.vietqr.io/image/${bankId}-${accountNo}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(orderCode)}&accountName=${encodeURIComponent(accountName)}`;
+  const vietQRUrl = `https://img.vietqr.io/image/${encodeURIComponent(bankId)}-${encodeURIComponent(accountNo)}-${encodeURIComponent(template)}.png?amount=${numericAmount}&addInfo=${encodeURIComponent(transferContent)}&accountName=${encodeURIComponent(accountName)}`;
 
   return {
     qrData: {
@@ -163,8 +200,8 @@ const createVietQRPayment = async ({ orderId, orderCode, amount, orderDescriptio
       bankId,
       accountNo,
       accountName,
-      amount,
-      transferContent: orderCode,
+      amount: numericAmount,
+      transferContent,
     },
   };
 };
@@ -211,4 +248,5 @@ module.exports = {
   verifyMoMoCallback,
   verifyZaloPayCallback,
   createVietQRPayment,
+  validatePaymentConfiguration,
 };

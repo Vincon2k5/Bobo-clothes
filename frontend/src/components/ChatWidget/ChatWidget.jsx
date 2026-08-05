@@ -5,11 +5,11 @@ import { chatApi } from '../../services/api';
 import { resolveImageUrl } from '../../utils/image';
 import placeholder from '../../assets/placeholder.svg';
 
-const STORAGE_KEY = 'bobo_internal_chat_messages';
+const STORAGE_KEY = 'bobo_gemini_chat_messages';
 
 const WELCOME_MESSAGE = {
   role: 'assistant',
-  content: 'Xin chào! Mình là trợ lý BoBo. Bạn muốn tìm sản phẩm theo loại, màu, size hay ngân sách?',
+  content: 'Xin chào! Mình là trợ lý Gemini của BoBo. Bạn muốn tìm sản phẩm, chọn size hay hỏi về đơn hàng?',
 };
 
 const loadMessages = () => {
@@ -62,7 +62,7 @@ const ChatWidget = () => {
         ...current,
         {
           role: 'assistant',
-          content: error.message || 'Xin lỗi, trợ lý BoBo đang bận. Bạn vui lòng thử lại sau.',
+          content: error.message || 'Xin lỗi, Gemini đang bận. Bạn vui lòng thử lại sau.',
           isError: true,
         },
       ]);
@@ -79,15 +79,15 @@ const ChatWidget = () => {
       {isOpen && (
         <section
           className="mb-3 flex h-[min(620px,calc(100vh-130px))] w-[min(390px,calc(100vw-32px))] flex-col overflow-hidden rounded-2xl border border-bobo-gray-200 bg-white shadow-2xl"
-          aria-label="Chat với trợ lý BoBo"
+          aria-label="Chat với trợ lý Gemini của BoBo"
         >
           <header className="flex items-center gap-3 bg-bobo-black px-4 py-3.5 text-white">
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-bobo-black">
               <Bot size={20} />
             </span>
             <div className="flex-1">
-              <h2 className="text-sm font-semibold">Trợ lý BoBo</h2>
-              <p className="text-xs text-white/70">Trợ lý mua sắm</p>
+              <h2 className="text-sm font-semibold">BoBo Gemini</h2>
+              <p className="text-xs text-white/70">Trợ lý mua sắm AI</p>
             </div>
             <button
               type="button"
@@ -145,7 +145,7 @@ const ChatWidget = () => {
             {sending && (
               <div className="mr-auto flex items-center gap-2 rounded-2xl rounded-bl-sm border border-bobo-gray-100 bg-white px-4 py-3 text-sm text-bobo-gray-500">
                 <Loader2 size={15} className="animate-spin" />
-                Trợ lý đang tìm sản phẩm...
+                Gemini đang trả lời...
               </div>
             )}
             <div ref={bottomRef} />
@@ -183,7 +183,7 @@ const ChatWidget = () => {
         type="button"
         onClick={() => setIsOpen((open) => !open)}
         className="ml-auto flex h-14 w-14 items-center justify-center rounded-full bg-bobo-black text-white shadow-lg transition-transform hover:scale-105"
-        aria-label={isOpen ? 'Đóng trợ lý BoBo' : 'Mở trợ lý BoBo'}
+        aria-label={isOpen ? 'Đóng BoBo Gemini' : 'Mở BoBo Gemini'}
       >
         {isOpen ? <X size={24} /> : <MessageCircle size={25} />}
       </button>

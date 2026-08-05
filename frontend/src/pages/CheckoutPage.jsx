@@ -9,8 +9,6 @@ import { resolveImageUrl } from '../utils/image';
 
 const PAYMENT_METHODS = [
   { id: 'cod', label: 'Thanh toán khi nhận hàng (COD)', icon: '💵' },
-  { id: 'momo', label: 'Ví MoMo', icon: '💜' },
-  { id: 'zalopay', label: 'ZaloPay', icon: '🔵' },
   { id: 'vietqr', label: 'VietQR / Chuyển khoản ngân hàng', icon: '🏦' },
 ];
 
@@ -136,7 +134,7 @@ const CheckoutPage = () => {
 
       // Chuyển hướng theo payment method
       if (paymentUrl) {
-        // MoMo / ZaloPay → redirect tới payment gateway
+        // Cổng thanh toán có URL chuyển hướng.
         window.location.href = paymentUrl;
       } else if (qrData) {
         // VietQR → hiện QR code ở trang kết quả

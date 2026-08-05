@@ -94,7 +94,7 @@ export const siteApi = {
 };
 
 export const chatApi = {
-  send: (data) => api.post('/chat', data, { timeout: 30000 }),
+  send: (data) => api.post('/chat', data, { timeout: 35000 }),
 };
 
 export default api;

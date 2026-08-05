@@ -84,7 +84,7 @@ const Footer = () => {
             <div className="mt-6">
               <p className="text-bobo-gray-500 text-xs mb-2">Thanh toán an toàn</p>
               <div className="flex gap-2 flex-wrap">
-                {['MoMo', 'ZaloPay', 'VietQR', 'COD'].map((method) => (
+                {['VietQR', 'COD'].map((method) => (
                   <span key={method} className="bg-bobo-gray-700 text-bobo-gray-300 text-[10px] px-2 py-1">
                     {method}
                   </span>

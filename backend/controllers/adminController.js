@@ -17,6 +17,8 @@ const getDashboard = async (req, res, next) => {
     today.setHours(0, 0, 0, 0);
 
     const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    const chartStart = new Date(today);
+    chartStart.setDate(chartStart.getDate() - 6);
 
     const [
       totalOrders,
@@ -26,6 +28,9 @@ const getDashboard = async (req, res, next) => {
       lowStockProducts,
       recentOrders,
       pendingOrders,
+      salesByDayRaw,
+      orderStatusRaw,
+      topProducts,
     ] = await Promise.all([
       Order.countDocuments(),
       Order.countDocuments({ createdAt: { $gte: today } }),
@@ -46,7 +51,68 @@ const getDashboard = async (req, res, next) => {
         .populate('user', 'fullName email')
         .lean(),
       Order.countDocuments({ status: 'pending' }),
+      Order.aggregate([
+        {
+          $match: {
+            createdAt: { $gte: chartStart },
+            status: { $nin: ['cancelled', 'refunded'] },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              $dateToString: {
+                format: '%Y-%m-%d',
+                date: '$createdAt',
+                timezone: 'Asia/Ho_Chi_Minh',
+              },
+            },
+            revenue: { $sum: '$total' },
+            orders: { $sum: 1 },
+          },
+        },
+        { $sort: { _id: 1 } },
+      ]),
+      Order.aggregate([
+        { $group: { _id: '$status', count: { $sum: 1 } } },
+      ]),
+      Order.aggregate([
+        { $match: { status: { $nin: ['cancelled', 'refunded'] } } },
+        { $unwind: '$items' },
+        {
+          $group: {
+            _id: { product: '$items.product', name: '$items.name' },
+            quantity: { $sum: '$items.quantity' },
+            revenue: { $sum: '$items.totalPrice' },
+          },
+        },
+        { $sort: { quantity: -1, revenue: -1 } },
+        { $limit: 5 },
+      ]),
     ]);
+
+    const salesMap = new Map(salesByDayRaw.map((item) => [item._id, item]));
+    const salesByDay = Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() - (6 - index));
+      const key = date.toLocaleDateString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' });
+      const value = salesMap.get(key);
+      return {
+        date: key,
+        label: date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }),
+        revenue: value?.revenue || 0,
+        orders: value?.orders || 0,
+      };
+    });
+
+    const statusKeys = [
+      'pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded',
+    ];
+    const statusMap = new Map(orderStatusRaw.map((item) => [item._id, item.count]));
+    const ordersByStatus = statusKeys.map((status) => ({
+      status,
+      count: statusMap.get(status) || 0,
+    }));
 
     res.json({
       success: true,
@@ -61,6 +127,16 @@ const getDashboard = async (req, res, next) => {
         },
         lowStockProducts: lowStockProducts.slice(0, 5),
         recentOrders,
+        charts: {
+          salesByDay,
+          ordersByStatus,
+          topProducts: topProducts.map((item) => ({
+            productId: item._id.product,
+            name: item._id.name,
+            quantity: item.quantity,
+            revenue: item.revenue,
+          })),
+        },
       },
     });
   } catch (error) {
@@ -239,11 +315,16 @@ const adminGetOrder = async (req, res, next) => {
  */
 const updateOrderStatus = async (req, res, next) => {
   try {
-    const { status, note, trackingCode } = req.body;
+    const { status, note, trackingCode, paymentStatus } = req.body;
 
     const VALID_STATUSES = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
     if (!VALID_STATUSES.includes(status)) {
       return next(new AppError('Trạng thái không hợp lệ', 400));
+    }
+
+    const VALID_PAYMENT_STATUSES = ['pending', 'paid', 'failed', 'refunded'];
+    if (paymentStatus && !VALID_PAYMENT_STATUSES.includes(paymentStatus)) {
+      return next(new AppError('Trạng thái thanh toán không hợp lệ', 400));
     }
 
     const updateData = {
@@ -258,10 +339,15 @@ const updateOrderStatus = async (req, res, next) => {
     };
 
     if (trackingCode) updateData.trackingCode = trackingCode;
+    if (paymentStatus) {
+      updateData.paymentStatus = paymentStatus;
+      updateData.paidAt = paymentStatus === 'paid' ? new Date() : null;
+    }
     if (status === 'delivered') updateData.deliveredAt = new Date();
     if (status === 'shipped') updateData.shippedAt = new Date();
 
-    const order = await Order.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    const order = await Order.findByIdAndUpdate(req.params.id, updateData, { new: true })
+      .populate('user', 'fullName email phone');
     if (!order) return next(new AppError('Không tìm thấy đơn hàng', 404));
 
     res.json({ success: true, data: order, message: 'Đã cập nhật trạng thái đơn hàng' });

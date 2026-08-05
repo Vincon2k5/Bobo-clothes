@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom';
-import { CheckCircle2, Loader2, RefreshCw } from 'lucide-react';
+import { CheckCircle2, Copy, Loader2, RefreshCw } from 'lucide-react';
 import { orderApi } from '../services/api';
 
 const STATUS_STEPS = [
@@ -37,6 +37,7 @@ const OrderStatusPage = ({ checkoutResult = false }) => {
   const [email, setEmail] = useState(initialEmail.current);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [copiedField, setCopiedField] = useState('');
 
   const fetchOrder = useCallback(async (lookupEmail = email) => {
     if (!orderCode) {
@@ -67,6 +68,19 @@ const OrderStatusPage = ({ checkoutResult = false }) => {
   const currentStep = STATUS_STEPS.findIndex((step) => step.value === order?.status);
   const formatPrice = (value) =>
     new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value || 0);
+  const qrData = location.state?.qrData || order?.paymentDetails;
+  const isVietQr = order?.paymentMethod === 'vietqr' || searchParams.get('method') === 'vietqr';
+
+  const copyValue = async (field, value) => {
+    if (!value) return;
+    try {
+      await navigator.clipboard.writeText(String(value));
+      setCopiedField(field);
+      window.setTimeout(() => setCopiedField(''), 1600);
+    } catch {
+      setError('Không thể sao chép tự động. Vui lòng chọn và sao chép thủ công.');
+    }
+  };
 
   return (
     <main className="container-main max-w-3xl py-12">
@@ -121,6 +135,57 @@ const OrderStatusPage = ({ checkoutResult = false }) => {
 
         {order && (
           <>
+            {isVietQr && (
+              <div className={`mt-7 border p-5 ${order.paymentStatus === 'paid' ? 'border-green-200 bg-green-50' : 'border-blue-200 bg-blue-50'}`}>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="font-semibold">Thanh toán bằng VietQR</p>
+                    <p className="mt-1 text-sm text-bobo-gray-600">
+                      {order.paymentStatus === 'paid'
+                        ? 'Admin đã xác nhận nhận được chuyển khoản.'
+                        : 'Quét QR và chuyển đúng số tiền, đúng nội dung bên dưới.'}
+                    </p>
+                  </div>
+                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${order.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                    {order.paymentStatus === 'paid' ? 'Đã thanh toán' : 'Chờ xác nhận thanh toán'}
+                  </span>
+                </div>
+
+                {order.paymentStatus !== 'paid' && qrData && (
+                  <div className="mt-5 grid gap-5 sm:grid-cols-[230px_1fr] sm:items-center">
+                    <img
+                      src={qrData.imageUrl}
+                      alt={`Mã VietQR cho đơn ${orderCode}`}
+                      className="mx-auto w-full max-w-[230px] border border-white bg-white object-contain shadow-sm"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="space-y-3 text-sm">
+                      <PaymentInfo label="Ngân hàng" value={qrData.bankId} />
+                      <PaymentInfo
+                        label="Số tài khoản"
+                        value={qrData.accountNo}
+                        action={<CopyButton copied={copiedField === 'account'} onClick={() => copyValue('account', qrData.accountNo)} />}
+                      />
+                      <PaymentInfo label="Chủ tài khoản" value={qrData.accountName} />
+                      <PaymentInfo label="Số tiền" value={formatPrice(qrData.amount || order.total)} strong />
+                      <PaymentInfo
+                        label="Nội dung chuyển khoản"
+                        value={qrData.transferContent}
+                        strong
+                        action={<CopyButton copied={copiedField === 'content'} onClick={() => copyValue('content', qrData.transferContent)} />}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {order.paymentStatus !== 'paid' && !qrData && (
+                  <p className="mt-4 rounded bg-white p-3 text-sm text-red-700">
+                    Chưa tải được mã QR. Hãy bấm “Cập nhật trạng thái” để thử lại.
+                  </p>
+                )}
+              </div>
+            )}
+
             <div className="mt-7">
               <p className="mb-4 text-sm font-semibold">Trạng thái đơn hàng</p>
               {TERMINAL_LABELS[order.status] ? (
@@ -154,6 +219,12 @@ const OrderStatusPage = ({ checkoutResult = false }) => {
                 <span className="text-bobo-gray-500">Tổng thanh toán</span>
                 <span className="font-semibold">{formatPrice(order.total)}</span>
               </div>
+              <div className="mt-2 flex justify-between text-sm">
+                <span className="text-bobo-gray-500">Trạng thái thanh toán</span>
+                <span className={`font-medium ${order.paymentStatus === 'paid' ? 'text-green-700' : 'text-yellow-700'}`}>
+                  {order.paymentStatus === 'paid' ? 'Đã thanh toán' : 'Chờ thanh toán'}
+                </span>
+              </div>
               {order.trackingCode && (
                 <div className="mt-2 flex justify-between text-sm">
                   <span className="text-bobo-gray-500">Mã vận đơn</span>
@@ -172,5 +243,26 @@ const OrderStatusPage = ({ checkoutResult = false }) => {
     </main>
   );
 };
+
+const PaymentInfo = ({ label, value, strong = false, action }) => (
+  <div>
+    <p className="text-xs text-bobo-gray-500">{label}</p>
+    <div className="mt-0.5 flex items-center gap-2">
+      <p className={strong ? 'font-bold text-bobo-black' : 'font-medium'}>{value || '—'}</p>
+      {action}
+    </div>
+  </div>
+);
+
+const CopyButton = ({ copied, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="inline-flex items-center gap-1 text-xs font-medium text-blue-700 hover:text-blue-900"
+  >
+    <Copy size={13} />
+    {copied ? 'Đã sao chép' : 'Sao chép'}
+  </button>
+);
 
 export default OrderStatusPage;

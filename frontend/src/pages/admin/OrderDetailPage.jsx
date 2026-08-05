@@ -87,6 +87,25 @@ const OrderDetailPage = () => {
     }
   };
 
+  const handleConfirmPayment = async () => {
+    if (!window.confirm(`Xác nhận đã nhận đủ ${formatPrice(order.total)} cho đơn ${order.orderCode}?`)) return;
+
+    try {
+      setSaving(true);
+      const res = await adminApi.updateOrderStatus(id, {
+        status: order.status,
+        paymentStatus: 'paid',
+        note: 'Admin đã xác nhận nhận đủ tiền chuyển khoản VietQR',
+      });
+      setOrder(res.data);
+      toast.success('Đã xác nhận thanh toán VietQR!');
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const formatPrice = (p) => new Intl.NumberFormat('vi-VN').format(p) + '₫';
   const formatDate = (d) => new Date(d).toLocaleDateString('vi-VN', {
     day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
@@ -271,6 +290,23 @@ const OrderDetailPage = () => {
                 }
               />
               {order.trackingCode && <Row label="Mã vận đơn" value={order.trackingCode} />}
+              {order.paymentMethod === 'vietqr' && order.paymentDetails && (
+                <div className="mt-3 border-t border-gray-100 pt-3 text-xs text-gray-600">
+                  <p>{order.paymentDetails.bankId} · {order.paymentDetails.accountNo}</p>
+                  <p className="mt-1 font-medium text-gray-900">{order.paymentDetails.transferContent}</p>
+                </div>
+              )}
+              {order.paymentMethod === 'vietqr' && order.paymentStatus !== 'paid' && (
+                <button
+                  type="button"
+                  onClick={handleConfirmPayment}
+                  disabled={saving}
+                  className="mt-3 flex w-full items-center justify-center gap-2 bg-green-600 px-4 py-2.5 font-medium text-white transition-colors hover:bg-green-700 disabled:opacity-60"
+                >
+                  <CheckCircle2 size={16} />
+                  Xác nhận đã nhận tiền
+                </button>
+              )}
             </div>
           </Card>
 

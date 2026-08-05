@@ -3,7 +3,7 @@ const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const { AppError } = require('../middleware/errorHandler');
 const { calculateShippingFee } = require('../services/shippingService');
-const { processPayment } = require('../services/paymentService');
+const { processPayment, validatePaymentConfiguration } = require('../services/paymentService');
 
 /**
  * @desc    Tạo đơn hàng mới (hỗ trợ cả Guest Checkout và User Checkout)
@@ -34,6 +34,21 @@ const createOrder = async (req, res, next) => {
 
     const userId = req.user?._id || null;
     const sessionId = req.headers['x-session-id'];
+
+    const supportedPaymentMethods = ['cod', 'vietqr'];
+    if (!supportedPaymentMethods.includes(paymentMethod)) {
+      return next(new AppError('Phương thức thanh toán chưa được hỗ trợ', 400));
+    }
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return next(new AppError('Giỏ hàng không có sản phẩm', 400));
+    }
+
+    try {
+      validatePaymentConfiguration(paymentMethod);
+    } catch (configurationError) {
+      return next(new AppError(configurationError.message, 503));
+    }
 
     // ==============================
     // BƯỚC 1: Validate guest vs user
@@ -201,6 +216,11 @@ const createOrder = async (req, res, next) => {
       }
     }
 
+    if (paymentData?.qrData) {
+      order.paymentDetails = paymentData.qrData;
+      await order.save();
+    }
+
     // ==============================
     // BƯỚC 8: Xóa giỏ hàng sau khi đặt hàng thành công
     // ==============================
@@ -222,6 +242,7 @@ const createOrder = async (req, res, next) => {
           orderCode: order.orderCode,
           total: order.total,
           paymentMethod: order.paymentMethod,
+          paymentStatus: order.paymentStatus,
           status: order.status,
         },
         // URL redirect cho thanh toán online (MoMo, ZaloPay...)
@@ -280,7 +301,7 @@ const getMyOrders = async (req, res, next) => {
 
     const [orders, total] = await Promise.all([
       Order.find({ user: req.user._id })
-        .select('orderCode status total paymentMethod createdAt items')
+        .select('orderCode status total paymentMethod paymentStatus createdAt items')
         .sort('-createdAt')
         .skip(skip)
         .limit(Number(limit))
